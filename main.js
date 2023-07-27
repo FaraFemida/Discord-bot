@@ -39,11 +39,11 @@ client.on('interactionCreate', async (interaction) => {
       .setImage('https://i.pinimg.com/originals/bc/53/d1/bc53d1661adc7443e7be761f6f6ab961.gif') // Установили указанную ссылку как большую картинку
       .setTitle('Информация о сервере')
       .addFields(
+        { name: 'Имя сервера', value: serverName.toString(), inline: true },
+        { name: `Дата создания сервера`, value: formattedDate, inline: true },
         { name: `Всего участников`, value: memberCount.toString(), inline: true},
         { name: `Активных участников`, value: activeMembers.toString(), inline: true },
         { name: 'Участники в голосовых каналах', value: voiceChannelMembers.toString(), inline: true },
-        { name: 'Имя сервера', value: serverName.toString(), inline: true },
-        { name: `Дата создания сервера`, value: formattedDate, inline: true },
       )
       .setTimestamp() // Добавлено: устанавливаем текущую дату/время как timestamp эмбеда,
       .setFooter({ text: 'De/Generation', iconURL: 'https://i.pinimg.com/564x/88/b2/f7/88b2f7aae4fd60ed92f53f47e5c69daa.jpg' });
