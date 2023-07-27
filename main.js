@@ -19,16 +19,7 @@ client.on('interactionCreate', async (interaction) => {
 
   const { commandName } = interaction;
 
-  if (commandName === 'hello') {
-    // Создаем новый MessageEmbed
-    const embed = new EmbedBuilder()
-      .setColor('#18191c')
-      .setTitle('Hello, world!')
-      .setDescription('Привет, мир! Это эмбед с приветствием.');
-
-    // Отправляем эмбед в ответ на команду
-    await interaction.reply({ embeds: [embed] });
-  } else if (commandName === 'serverinfo') {
+  if (commandName === 'serverinfo') {
     const guild = interaction.guild;
     if (!guild) {
       await interaction.reply('Команда доступна только на сервере!');
