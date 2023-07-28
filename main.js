@@ -10,8 +10,35 @@ const client = new Client({
   ],
 });
 
-client.once('ready', () => {
+const SLASH_COMMANDS = [
+  // Добавьте сюда имена всех слеш-команд, которые должны быть зарегистрированы на сервере
+  'serverinfo',
+];
+
+client.once('ready', async () => {
   console.log(`Logged in as ${client.user.tag}!`);
+
+   // Зарегистрируем слеш-команды при каждом запуске бота
+   const commands = await client.application?.commands.fetch();
+   if (commands) {
+     const commandNames = commands.map(command => command.name);
+     SLASH_COMMANDS.forEach(async (commandName) => {
+       if (!commandNames.includes(commandName)) {
+         await client.application?.commands.create({ name: commandName, type: 'CHAT_INPUT' });
+         console.log(`Зарегистрирована слеш-команда "${commandName}"`);
+       }
+     });
+   }
+
+    // Удалим неиспользуемые слеш-команды, которых нет в массиве SLASH_COMMANDS
+  if (commands) {
+    commands.forEach(async (command) => {
+      if (!SLASH_COMMANDS.includes(command.name)) {
+        await command.delete();
+        console.log(`Удалена неиспользуемая слеш-команда "${command.name}"`);
+      }
+    });
+  }
 });
 
 client.on('interactionCreate', async (interaction) => {
@@ -43,7 +70,7 @@ client.on('interactionCreate', async (interaction) => {
         { name: `Дата создания сервера`, value: formattedDate, inline: true },
         { name: `Всего участников`, value: memberCount.toString(), inline: true},
         { name: `Активных участников`, value: activeMembers.toString(), inline: true },
-        { name: 'Участники в голосовых каналах', value: voiceChannelMembers.toString(), inline: true },
+        { name: ':loud_sound: Участники в голосовых каналах', value: voiceChannelMembers.toString(), inline: true },
       )
       .setTimestamp() // Добавлено: устанавливаем текущую дату/время как timestamp эмбеда,
       .setFooter({ text: 'De/Generation', iconURL: 'https://i.pinimg.com/564x/88/b2/f7/88b2f7aae4fd60ed92f53f47e5c69daa.jpg' });
