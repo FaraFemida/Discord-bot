@@ -60,6 +60,18 @@ client.on('interactionCreate', async (interaction) => {
     const createdAt = guild.createdAt;
     const formattedDate = format(createdAt, 'PPP', { locale: ru }); // Форматируем дату в виде 'день месяц год' (например, '28 июля 2023')
 
+       // Проверяем, доступен ли объект "guild.owner", иначе пытаемся получить информацию из кэша гильдии
+       const serverOwner = guild.owner ?? (guild.members.cache.get(guild.ownerId)?.user ?? null);
+
+       if (!serverOwner) {
+         await interaction.reply('Не удалось получить информацию о создателе сервера.');
+         return;
+       }
+
+    const serverOwnerName = serverOwner.username;
+    const serverOwnerDiscriminator = serverOwner.discriminator;
+    const serverOwnerId = serverOwner.id;
+
     const embed = new EmbedBuilder()
       .setColor('#18191c')
       .setImage('https://i.pinimg.com/originals/bc/53/d1/bc53d1661adc7443e7be761f6f6ab961.gif') // Установили указанную ссылку как большую картинку
@@ -69,6 +81,7 @@ client.on('interactionCreate', async (interaction) => {
         { name: '\u200B', value: '**Всего участников: **' + memberCount.toString() },
         { name: '\u200B', value: '**Активных участников: **' + activeMembers.toString() },
         { name: '\u200B', value: '**Участники в голосовых каналах: **' + voiceChannelMembers.toString() },
+        { name: '\u200B', value: '**Создатель сервера: **' + '<@'+serverOwnerId+'>' },
       )
       .setTimestamp() // Добавлено: устанавливаем текущую дату/время как timestamp эмбеда,
       .setFooter({ text: 'De/Generation', iconURL: 'https://i.pinimg.com/564x/88/b2/f7/88b2f7aae4fd60ed92f53f47e5c69daa.jpg' });
