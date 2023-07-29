@@ -44,7 +44,7 @@ client.once('ready', async () => {
 client.on('interactionCreate', async (interaction) => {
   if (!interaction.isCommand()) return;
 
-  const { commandName } = interaction;
+  const { commandName, guild } = interaction; // Переместили определение переменной guild сюда
 
   if (commandName === 'serverinfo') {
     const guild = interaction.guild;
@@ -53,8 +53,13 @@ client.on('interactionCreate', async (interaction) => {
       return;
     }
 
-    const memberCount = guild.memberCount;
+    // Получаем общее количество участников здесь
+    const memberCount = interaction.guild?.memberCount ?? 0;
     const activeMembers = guild.members.cache.filter((member) => member.presence?.status !== 'offline').size;
+
+    // Количество офлайн участников = общее количество участников - количество активных участников
+    const offlineMembers = memberCount - activeMembers;
+
     const voiceChannels = guild.channels.cache.filter((channel) => channel.type === 'GUILD_VOICE'); // Добавлено: Получаем список голосовых каналов сервера
     const voiceChannelMembers = voiceChannels.reduce((totalMembers, voiceChannel) => totalMembers + voiceChannel.members.size, 0); // Добавлено: Считаем количество участников в голосовых каналах
     const createdAt = guild.createdAt;
@@ -77,11 +82,12 @@ client.on('interactionCreate', async (interaction) => {
       .setImage('https://i.pinimg.com/originals/bc/53/d1/bc53d1661adc7443e7be761f6f6ab961.gif') // Установили указанную ссылку как большую картинку
       .setTitle('⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀**Информация о сервере**')
       .addFields(
-        { name: '\u200B', value: '**Дата создания сервера: **' + formattedDate },
-        { name: '\u200B', value: '**Всего участников: **' + memberCount.toString() },
-        { name: '\u200B', value: '**Активных участников: **' + activeMembers.toString() },
-        { name: '\u200B', value: '**Участники в голосовых каналах: **' + voiceChannelMembers.toString() },
-        { name: '\u200B', value: '**Создатель сервера: **' + '<@'+serverOwnerId+'>' },
+        { name: '\u200B', value: '<:serverinfo:1134989793294549103> **Дата создания сервера: **' + formattedDate },
+        { name: '\u200B', value: '<:memberblue:1134987992554025101> **Всего участников: **' + memberCount.toString() },
+        { name: '\u200B', value: '<:membergreen:1134984700230914118> **Онлайн участники: **' + activeMembers.toString() },
+        { name: '\u200B', value: '<:memberred:1134984695604588605> **Оффлайн участники: **' + offlineMembers.toString() },
+        { name: '\u200B', value: '<:voicebadge:1134988862536560721> **Участники в голосовых каналах: **' + voiceChannelMembers.toString() },
+        { name: '\u200B', value: '<:ownercrown:1134984698393804920> **Создатель сервера: **' + '<@'+serverOwnerId+'>' },
       )
       .setTimestamp() // Добавлено: устанавливаем текущую дату/время как timestamp эмбеда,
       .setFooter({ text: 'De/Generation', iconURL: 'https://i.pinimg.com/564x/88/b2/f7/88b2f7aae4fd60ed92f53f47e5c69daa.jpg' });
