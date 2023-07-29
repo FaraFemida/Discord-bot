@@ -55,7 +55,6 @@ client.on('interactionCreate', async (interaction) => {
 
     const memberCount = guild.memberCount;
     const activeMembers = guild.members.cache.filter((member) => member.presence?.status !== 'offline').size;
-    const serverName = guild.name;
     const voiceChannels = guild.channels.cache.filter((channel) => channel.type === 'GUILD_VOICE'); // Добавлено: Получаем список голосовых каналов сервера
     const voiceChannelMembers = voiceChannels.reduce((totalMembers, voiceChannel) => totalMembers + voiceChannel.members.size, 0); // Добавлено: Считаем количество участников в голосовых каналах
     const createdAt = guild.createdAt;
@@ -64,13 +63,12 @@ client.on('interactionCreate', async (interaction) => {
     const embed = new EmbedBuilder()
       .setColor('#18191c')
       .setImage('https://i.pinimg.com/originals/bc/53/d1/bc53d1661adc7443e7be761f6f6ab961.gif') // Установили указанную ссылку как большую картинку
-      .setTitle('Информация о сервере')
+      .setTitle('⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀**Информация о сервере**')
       .addFields(
-        { name: 'Имя сервера', value: serverName.toString(), inline: true },
-        { name: `Дата создания сервера`, value: formattedDate, inline: true },
-        { name: `Всего участников`, value: memberCount.toString(), inline: true},
-        { name: `Активных участников`, value: activeMembers.toString(), inline: true },
-        { name: ':loud_sound: Участники в голосовых каналах', value: voiceChannelMembers.toString(), inline: true },
+        { name: '\u200B', value: '**Дата создания сервера: **' + formattedDate },
+        { name: '\u200B', value: '**Всего участников: **' + memberCount.toString() },
+        { name: '\u200B', value: '**Активных участников: **' + activeMembers.toString() },
+        { name: '\u200B', value: '**Участники в голосовых каналах: **' + voiceChannelMembers.toString() },
       )
       .setTimestamp() // Добавлено: устанавливаем текущую дату/время как timestamp эмбеда,
       .setFooter({ text: 'De/Generation', iconURL: 'https://i.pinimg.com/564x/88/b2/f7/88b2f7aae4fd60ed92f53f47e5c69daa.jpg' });
