@@ -10,10 +10,11 @@ const client = new Client({
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
     GatewayIntentBits.GuildVoiceStates, // Добавляем право GUILD_VOICE_STATES
-    GatewayIntentBits.GuildMembers, // Добавляем право GUILD_MEMBERS
+    GatewayIntentBits.GuildMembers, // Добавляем право GUILD_MEMBERSъ
+    GatewayIntentBits.GuildPresences
   ],
+  cacheGuilds: false,
 });
-
 
 const SLASH_COMMANDS = [
   // Добавьте сюда имена всех слеш-команд, которые должны быть зарегистрированы на сервере
@@ -46,6 +47,28 @@ client.once('ready', async () => {
   }
 });
 
+client.on('guildCreate', async (guild) => {
+  await handleGuildInfo(guild);
+});
+
+async function handleGuildInfo(guild) {
+  // Получаем всех участников сервера с их статусами
+  const members = await guild.members.fetch({ withPresences: true, force: true });
+  const nonBotMembers = members.filter((member) => !member.user.bot);
+
+  const memberCount = nonBotMembers.size;
+  const activeMembers = nonBotMembers.filter((member) => member.presence?.status === 'online').size;
+  const offlineMembers = memberCount - activeMembers;
+
+  const voiceChannels = guild.channels.cache.filter((channel) => channel.type === 'GUILD_VOICE');
+  const voiceChannelMembers = voiceChannels.reduce((totalMembers, voiceChannel) => {
+    const membersInChannel = voiceChannel.members.filter((member) => !member.user.bot).size;
+    return totalMembers + membersInChannel;
+  }, 0);
+
+  return { voiceChannelMembers, offlineMembers };
+}
+
 client.on('interactionCreate', async (interaction) => {
   if (!interaction.isCommand()) return;
 
@@ -58,22 +81,18 @@ client.on('interactionCreate', async (interaction) => {
       return;
     }
 
-    // Получаем общее количество участников здесь
-    const memberCount = interaction.guild?.memberCount ?? 0;
-    const activeMembers = guild.members.cache.filter((member) => member.presence?.status !== 'offline').size;
-
-    // Количество офлайн участников = общее количество участников - количество активных участников
+    const members = await guild.members.fetch();
+    const nonBotMembers = members.filter((member) => !member.user.bot);
+    const memberCount = nonBotMembers.size;
+    const activeMembers = nonBotMembers.filter((member) => member.presence?.status !== 'offline').size;
     const offlineMembers = memberCount - activeMembers;
-
-    const voiceChannels = guild.channels.cache.filter((channel) => channel.type === 'GUILD_VOICE'); // Добавлено: Получаем список голосовых каналов сервера
-
-           // Подсчитываем общее количество участников в голосовых каналах
-           let voiceChannelMembersCount = 0;
-           voiceChannels.forEach((voiceChannel) => {
-             voiceChannelMembersCount += voiceChannel.members.size;
-           });
+    const voiceChannels = await guild.channels.fetch();
+    const filteredVoiceChannels = voiceChannels.filter(channel => channel.type === 'GUILD_VOICE');
+    const voiceChannelMembers = filteredVoiceChannels.reduce(
+      (totalMembers, voiceChannel) => totalMembers + voiceChannel.members.size,
+      0
+    );
            
-    const voiceChannelMembers = voiceChannels.reduce((totalMembers, voiceChannel) => totalMembers + voiceChannel.members.size, 0); // Добавлено: Считаем количество участников в голосовых каналах
     const createdAt = guild.createdAt;
     const formattedDate = format(createdAt, 'PPP', { locale: ru }); // Форматируем дату в виде 'день месяц год' (например, '28 июля 2023')
 
@@ -92,11 +111,11 @@ client.on('interactionCreate', async (interaction) => {
       .setImage('https://i.pinimg.com/originals/bc/53/d1/bc53d1661adc7443e7be761f6f6ab961.gif') // Установили указанную ссылку как большую картинку
       .setTitle('⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀**Информация о сервере**')
       .addFields(
-        { name: '\u200B', value: '<:serverinfo:1134989793294549103> **Дата создания сервера: **' + formattedDate, inline: true },
         { name: '\u200B', value: '<:memberblue:1134987992554025101> **Всего участников: **' + memberCount.toString(), inline: true },
         { name: '\u200B', value: '<:membergreen:1134984700230914118> **Онлайн участники: **' + activeMembers.toString(), inline: true },
         { name: '\u200B', value: '<:memberred:1134984695604588605> **Оффлайн участники: **' + offlineMembers.toString(), inline: true },
         { name: '\u200B', value: '<:voicebadge:1134988862536560721> **Участники в голосовых каналах: **' + voiceChannelMembers.toString(), inline: true },
+        { name: '\u200B', value: '<:serverinfo:1134989793294549103> **Дата создания сервера: **' + formattedDate, inline: true },
         { name: '\u200B', value: '<:ownercrown:1134984698393804920> **Создатель сервера: **' + '<@'+serverOwnerId+'>', inline: true },
       )
       .setTimestamp() // Добавлено: устанавливаем текущую дату/время как timestamp эмбеда,
